@@ -1,7 +1,7 @@
 # Tiny Tapeout project information
 project:
   title:        "Multi-Channel Debounced Wake Controller"
-  author:       "SREE MATHESH K"
+  author:       "sreemathesh k"
   discord:      ""
   description:  "4-channel debounced wake/event controller with priority encoding, OR/AND wake modes, and byte-wide status readback"
   language:     "Verilog"
