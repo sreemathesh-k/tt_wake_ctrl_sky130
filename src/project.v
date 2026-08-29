@@ -29,7 +29,6 @@
 
 module wake_ctrl #(
     parameter N   = 4,
-    parameter DB  = 8,   // reset-default debounce threshold (still overridable at runtime)
     parameter PW  = 4
 )(
     input  wire         clk,
@@ -296,8 +295,6 @@ module tt_um_sreemathesh_k_wake_ctrl (
     input  wire        rst_n
 );
 
-    localparam N = 4;
-
     wire       cfg_mode = uio_in[7];
     wire       cfg_we_raw = uio_in[6];
     wire [4:0] reg_sel  = uio_in[5:1];
@@ -314,12 +311,10 @@ module tt_um_sreemathesh_k_wake_ctrl (
     // Normal-mode sensor inputs (frozen during a config write cycle --
     // configuration is intended to happen at boot, before relying on
     // live sensor timing, same as any real always-on block's setup phase)
+    reg [3:0] ch_en_hold;
     wire [3:0] thresh_in = cfg_mode ? 4'b0000    : ui_in[3:0];
     wire [3:0] ch_en     = cfg_mode ? ch_en_hold : ui_in[7:4];
 
-    // Hold ch_en at its last live value during config mode so the core's
-    // debounce state doesn't reset just because config_mode toggled on
-    reg [3:0] ch_en_hold;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) ch_en_hold <= 4'b0000;
         else if (!cfg_mode) ch_en_hold <= ui_in[7:4];
@@ -363,7 +358,6 @@ module tt_um_sreemathesh_k_wake_ctrl (
 
     wake_ctrl #(
         .N  (4),
-        .DB (8),
         .PW (4)
     ) u_wake_controller (
         .clk              (clk),
@@ -387,7 +381,6 @@ module tt_um_sreemathesh_k_wake_ctrl (
     );
 
     // ---- Write-one-to-clear sticky pending status --------------------------
-    wire wake_rise = wake_out; // core's wake_out is already a single-cycle-armed pulse gated by pcnt; treat its rising as the event edge
     reg wake_out_d2;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) wake_out_d2 <= 1'b0;
